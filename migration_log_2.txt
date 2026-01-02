@@ -1,0 +1,21 @@
+
+   Illuminate\Database\QueryException 
+
+  could not find driver (Connection: mysql, SQL: select exists (select 1 from information_schema.tables where table_schema = schema() and table_name = 'migrations' and table_type in ('BASE TABLE', 'SYSTEM VERSIONED')) as `exists`)
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:826
+    822▕                     $this->getName(), $query, $this->prepareBindings($bindings), $e
+    823▕                 );
+    824▕             }
+    825▕ 
+  ➜ 826▕             throw new QueryException(
+    827▕                 $this->getName(), $query, $this->prepareBindings($bindings), $e
+    828▕             );
+    829▕         }
+    830▕     }
+
+      [2m+34 vendor frames [22m
+
+  35  artisan:16
+      Illuminate\Foundation\Application::handleCommand()
+
