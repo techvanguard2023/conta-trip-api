@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('trips', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
+            $table->string('description')->nullable();
             $table->string('invite_code', 10)->unique();
             $table->string('currency', 3)->default('BRL');
             $table->date('start_date');
