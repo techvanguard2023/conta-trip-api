@@ -26,12 +26,14 @@ class TripController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'string|max:255',
             'members' => 'array', // Nomes de membros extras (sem app)
             'members.*' => 'string'
         ]);
 
         $trip = Trip::create([
             'name' => $request->name,
+            'description' => $request->description,
             'start_date' => now(),
             'invite_code' => strtoupper(Str::random(6)),
             'created_by' => Auth::id()
