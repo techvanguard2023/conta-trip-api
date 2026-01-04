@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('description');
             $table->decimal('amount', 10, 2);
             $table->uuid('payer_id'); // Referencia a tabela PARTICIPANTS, não users
-            $table->enum('category', ['food', 'transport', 'accommodation', 'entertainment', 'other']);
+            $table->string('category');
             $table->dateTime('date');
             $table->timestamps();
             $table->softDeletes();

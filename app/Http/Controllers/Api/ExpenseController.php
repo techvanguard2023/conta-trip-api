@@ -30,6 +30,15 @@ class ExpenseController extends Controller
             'splits.*.memberId' => 'required|exists:participants,id',
             'splits.*.amount' => 'required|numeric'
         ]);
+        
+        $sumSplits = collect($request->splits)->sum('amount');
+        if (abs($sumSplits - $request->amount) > 0.01) { // Tolerância para ponto flutuante
+             return response()->json([
+                'message' => 'A soma das divisões não corresponde ao valor total da despesa',
+                'total' => $request->amount,
+                'sum' => $sumSplits
+             ], 422);
+        }
 
         DB::beginTransaction();
 
@@ -56,7 +65,7 @@ class ExpenseController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Erro ao salvar despesa'], 500);
+            return response()->json(['message' => 'Erro ao salvar despesa', 'error' => $e->getMessage()], 500);
         }
     }
 

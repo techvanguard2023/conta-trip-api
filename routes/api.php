@@ -6,11 +6,17 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TripController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Events\TestNotification;
 
 Route::prefix('v1')->group(function () {
 
     Route::get('status', function () {
         return response()->json(['status' => 'API V1 ContaTrip is alive!'], 200);
+    });
+
+    Route::get('/test-push', function () {
+        event(new TestNotification("Mensagem de teste via URL"));
+        return "Evento disparado!";
     });
 
     Route::post('login', [AuthController::class, 'login']);
