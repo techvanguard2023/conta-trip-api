@@ -12,14 +12,22 @@ use Illuminate\Support\Facades\Auth;
 
 class TripController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Retorna viagens onde o usuário logado é um participante
-        $trips = Trip::whereHas('participants', function($q) {
+        $query = Trip::whereHas('participants', function($q) {
             $q->where('user_id', Auth::id());
-        })->with('participants')->latest()->get();
+        })->with('participants')->latest();
 
-        return response()->json($trips);
+        // Paginação Opcional (Limit & Offset)
+        if ($request->has('limit')) {
+            $limit = (int) $request->input('limit');
+            $offset = (int) $request->input('offset', 0); // Default 0
+            
+            $query->skip($offset)->take($limit);
+        }
+
+        return response()->json($query->get());
     }
 
     public function store(Request $request)
