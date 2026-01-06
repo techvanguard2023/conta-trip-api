@@ -32,6 +32,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/trips', [TripController::class, 'store']); // Criar viagem
         Route::get('/trips/{trip}', [TripController::class, 'show']); // Detalhes da viagem
         Route::post('/trips/join', [TripController::class, 'join']); // Entrar via código
+        Route::delete('/trips/{id}', [TripController::class, 'destroy']); // Excluir grupo
 
         // Despesas
         Route::get('/trips/{trip}/expenses', [ExpenseController::class, 'index']); // Listar despesas

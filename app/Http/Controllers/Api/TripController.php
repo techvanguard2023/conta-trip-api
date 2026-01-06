@@ -95,4 +95,27 @@ class TripController extends Controller
 
         return response()->json($trip->load('participants'));
     }
+
+    public function destroy($id)
+    {
+        $trip = Trip::find($id);
+
+        if (!$trip) {
+            return response()->json(['message' => 'Grupo não encontrado.'], 404);
+        }
+
+        // Verifica se o usuário autenticado é o criador do grupo
+        if ($trip->created_by !== Auth::id()) {
+            return response()->json([
+                'message' => 'Você não tem permissão para excluir este grupo.'
+            ], 403);
+        }
+
+        // Deleta o grupo (cascade irá deletar participantes e despesas relacionadas)
+        $trip->delete();
+
+        return response()->json([
+            'message' => 'Grupo excluído com sucesso.'
+        ], 200);
+    }
 }
