@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\TripController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Events\TestNotification;
+use App\Http\Controllers\Api\UserController;
 
 Route::prefix('v1')->group(function () {
 
@@ -26,6 +27,12 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
+
+        // Atualizar perfil do usuário autenticado
+        Route::put('/update-me', [UserController::class, 'updateProfile']);
+
+        // Buscar chave PIX de um usuário
+        Route::get('/users/{userId}/pix', [UserController::class, 'getPixKey']);
 
         // Viagens
         Route::get('/trips', [TripController::class, 'index']); // Listar viagens do usuário
