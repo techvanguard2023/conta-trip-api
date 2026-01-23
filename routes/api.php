@@ -32,6 +32,7 @@ Route::prefix('v1')->group(function () {
         Route::put('/update-me', [UserController::class, 'updateProfile']);
         Route::put('/change-password', [AuthController::class, 'changePassword']);
         Route::post('/fcm-token', [UserController::class, 'updateFcmToken']);
+        Route::get('/test-fcm', [UserController::class, 'testFcmNotification']);
 
         // Buscar chave PIX de um usuário
         Route::get('/users/{userId}/pix', [UserController::class, 'getPixKey']);

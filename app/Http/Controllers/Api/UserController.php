@@ -76,4 +76,26 @@ class UserController extends Controller
             'message' => 'FCM Token atualizado com sucesso'
         ]);
     }
+
+    public function testFcmNotification(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user->fcm_token) {
+            return response()->json(['message' => 'Usuário não possui fcm_token registrado.'], 400);
+        }
+
+        try {
+            $firebaseService = new \App\Services\FirebaseNotificationService();
+            $firebaseService->sendNotification(
+                $user->fcm_token,
+                'Teste de Notificação',
+                'Esta é uma notificação de teste do ContaTrip!'
+            );
+
+            return response()->json(['message' => 'Notificação enviada com sucesso!']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Erro ao enviar notificação: ' . $e->getMessage()], 500);
+        }
+    }
 }
