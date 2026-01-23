@@ -23,11 +23,11 @@ Route::prefix('v1')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('register', [AuthController::class, 'register']);
     Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
-    // Essa rota é necessária apenas para que o Laravel consiga gerar o link de reset sem erro.
-    // Em produção, o link deve apontar para o seu frontend.
-    Route::get('reset-password/{token}', function ($token) {
-        return response()->json(['message' => 'Link de reset acessado.', 'token' => $token]);
+    Route::get('reset-password/{token}', function (Request $request, $token) {
+        $email = $request->query('email');
+        return redirect("http://localhost:3000/?token={$token}&email={$email}");
     })->name('password.reset');
+    Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
     
 
     Route::middleware('auth:sanctum')->group(function () {

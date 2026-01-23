@@ -100,4 +100,29 @@ class AuthController extends Controller
             ? response()->json(['message' => 'Link de recuperação enviado com sucesso.'])
             : response()->json(['message' => 'Não foi possível enviar o link de recuperação.', 'status' => $status], 400);
     }
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $status = Password::broker()->reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ])->setRememberToken(\Illuminate\Support\Str::random(60));
+
+                $user->save();
+
+                event(new \Illuminate\Auth\Events\PasswordReset($user));
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+            ? response()->json(['message' => 'Sua senha foi redefinida com sucesso!'])
+            : response()->json(['message' => 'Não foi possível redefinir sua senha.', 'status' => $status], 400);
+    }
 }
