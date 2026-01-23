@@ -61,6 +61,39 @@ class ExpenseController extends Controller
             }
 
             DB::commit();
+
+            // Enviar Notificações para os outros membros do grupo
+            try {
+                $payer = \App\Models\Participant::find($request->payer_id);
+                $payerName = $payer ? $payer->name : 'Alguém';
+                
+                $participants = $trip->participants()
+                    ->whereNotNull('user_id')
+                    ->where('user_id', '!=', \Illuminate\Support\Facades\Auth::id())
+                    ->with('user')
+                    ->get();
+
+                $tokens = $participants->pluck('user.fcm_token')->filter()->unique()->toArray();
+
+                if (!empty($tokens)) {
+                    $firebaseService = new \App\Services\FirebaseNotificationService();
+                    foreach ($tokens as $token) {
+                        try {
+                            $firebaseService->sendNotification(
+                                $token,
+                                "Nova despesa: {$trip->name}",
+                                "{$payerName} adicionou: {$expense->description} - R$ " . number_format($expense->amount, 2, ',', '.')
+                            );
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::error("Erro ao enviar notificação FCM: " . $e->getMessage());
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                // Logar erro mas não falhar a requisição de criação de despesa
+                \Illuminate\Support\Facades\Log::error("Erro no processo de notificação: " . $e->getMessage());
+            }
+
             return response()->json($expense->load('splits'), 201);
 
         } catch (\Exception $e) {
