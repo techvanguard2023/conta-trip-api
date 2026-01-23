@@ -14,15 +14,8 @@ use App\Notifications\CustomResetPassword;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasUuids, SoftDeletes;
 
-    /**
-     * Send the password reset notification.
-     *
-     * @param  string  $token
-     * @return void
-     */
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new CustomResetPassword($token));

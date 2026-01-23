@@ -34,27 +34,23 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
 
-        // Atualizar perfil do usuário autenticado
         Route::put('/update-me', [UserController::class, 'updateProfile']);
         Route::put('/change-password', [AuthController::class, 'changePassword']);
         Route::post('/fcm-token', [UserController::class, 'updateFcmToken']);
         Route::get('/test-fcm', [UserController::class, 'testFcmNotification']);
 
-        // Buscar chave PIX de um usuário
         Route::get('/users/{userId}/pix', [UserController::class, 'getPixKey']);
 
-        // Viagens
-        Route::get('/trips', [TripController::class, 'index']); // Listar viagens do usuário
-        Route::post('/trips', [TripController::class, 'store']); // Criar viagem
-        Route::get('/trips/{trip}', [TripController::class, 'show']); // Detalhes da viagem
-        Route::get('/trips/{trip}/pix-keys', [TripController::class, 'listPixKeys']); // Listar chaves PIX do grupo
-        Route::post('/trips/join', [TripController::class, 'join']); // Entrar via código
-        Route::delete('/trips/{id}', [TripController::class, 'destroy']); // Excluir grupo
+        Route::get('/trips', [TripController::class, 'index']); 
+        Route::post('/trips', [TripController::class, 'store']); 
+        Route::get('/trips/{trip}', [TripController::class, 'show']); 
+        Route::get('/trips/{trip}/pix-keys', [TripController::class, 'listPixKeys']); 
+        Route::post('/trips/join', [TripController::class, 'join']); 
+        Route::delete('/trips/{id}', [TripController::class, 'destroy']); 
 
-        // Despesas
-        Route::get('/trips/{trip}/expenses', [ExpenseController::class, 'index']); // Listar despesas
-        Route::post('/trips/{trip}/expenses', [ExpenseController::class, 'store']); // Adicionar despesa
-        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy']); // Remover despesa
+        Route::get('/trips/{trip}/expenses', [ExpenseController::class, 'index']); 
+        Route::post('/trips/{trip}/expenses', [ExpenseController::class, 'store']); 
+        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy']); 
 
         Route::get('/trips/{trip}/dashboard', [DashboardController::class, 'index']);
     });
