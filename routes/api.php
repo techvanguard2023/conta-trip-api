@@ -30,6 +30,8 @@ Route::prefix('v1')->group(function () {
 
         // Atualizar perfil do usuário autenticado
         Route::put('/update-me', [UserController::class, 'updateProfile']);
+        Route::put('/change-password', [AuthController::class, 'changePassword']);
+        Route::post('/fcm-token', [UserController::class, 'updateFcmToken']);
 
         // Buscar chave PIX de um usuário
         Route::get('/users/{userId}/pix', [UserController::class, 'getPixKey']);
@@ -38,6 +40,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/trips', [TripController::class, 'index']); // Listar viagens do usuário
         Route::post('/trips', [TripController::class, 'store']); // Criar viagem
         Route::get('/trips/{trip}', [TripController::class, 'show']); // Detalhes da viagem
+        Route::get('/trips/{trip}/pix-keys', [TripController::class, 'listPixKeys']); // Listar chaves PIX do grupo
         Route::post('/trips/join', [TripController::class, 'join']); // Entrar via código
         Route::delete('/trips/{id}', [TripController::class, 'destroy']); // Excluir grupo
 

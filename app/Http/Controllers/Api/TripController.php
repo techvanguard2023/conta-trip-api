@@ -118,4 +118,36 @@ class TripController extends Controller
             'message' => 'Grupo excluído com sucesso.'
         ], 200);
     }
+
+    public function listPixKeys(Trip $trip)
+    {
+        // Verificar se o usuário autenticado é um participante do grupo
+        $isParticipant = $trip->participants()->where('user_id', Auth::id())->exists();
+
+        if (!$isParticipant) {
+            return response()->json([
+                'message' => 'Você não tem permissão para visualizar as chaves PIX deste grupo.'
+            ], 403);
+        }
+
+        // Buscar participantes que possuem um usuário associado
+        $pixKeys = $trip->participants()
+            ->whereNotNull('user_id')
+            ->with(['user' => function($query) {
+                $query->select('id', 'name', 'pix_key');
+            }])
+            ->get()
+            ->map(function($participant) {
+                return [
+                    'user_id' => $participant->user_id,
+                    'name' => $participant->name,
+                    'pix_key' => $participant->user->pix_key ?? null,
+                ];
+            })
+            // Opcional: filtrar apenas quem tem chave pix cadastrada
+            ->filter(fn($item) => !empty($item['pix_key']))
+            ->values();
+
+        return response()->json($pixKeys);
+    }
 }

@@ -26,6 +26,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'pix_key',
+        'fcm_token',
     ];
 
     /**

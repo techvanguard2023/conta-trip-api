@@ -60,4 +60,20 @@ class UserController extends Controller
             'pixKey' => $targetUser->pix_key
         ]);
     }
+
+    public function updateFcmToken(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string'
+        ]);
+
+        $user = $request->user();
+        $user->update([
+            'fcm_token' => $request->token
+        ]);
+
+        return response()->json([
+            'message' => 'FCM Token atualizado com sucesso'
+        ]);
+    }
 }
