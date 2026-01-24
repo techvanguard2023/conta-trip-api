@@ -25,7 +25,7 @@ Route::prefix('v1')->group(function () {
     Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
     Route::get('reset-password/{token}', function (Request $request, $token) {
         $email = $request->query('email');
-        return redirect("https://conta-trip.vercel.app/?token={$token}&email={$email}");
+        return redirect("https://www.divididinho.com.br/?token={$token}&email={$email}");
     })->name('password.reset');
     Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
     
