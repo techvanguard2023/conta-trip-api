@@ -47,6 +47,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/trips/{trip}/pix-keys', [TripController::class, 'listPixKeys']); 
         Route::post('/trips/join', [TripController::class, 'join']); 
         Route::delete('/trips/{id}', [TripController::class, 'destroy']); 
+        Route::post('/trips/{trip}/participants', [TripController::class, 'addParticipant']);
+        Route::delete('/trips/{trip}/participants/{participantId}', [TripController::class, 'removeParticipant']);
 
         Route::get('/trips/{trip}/expenses', [ExpenseController::class, 'index']); 
         Route::post('/trips/{trip}/expenses', [ExpenseController::class, 'store']); 

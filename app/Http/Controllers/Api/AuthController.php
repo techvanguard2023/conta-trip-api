@@ -28,6 +28,14 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Vincular participantes existentes com o mesmo e-mail
+        \App\Models\Participant::where('email', $request->email)
+            ->whereNull('user_id')
+            ->update([
+                'user_id' => $user->id,
+                'name' => $user->name // Atualiza o nome para o nome oficial do usuário
+            ]);
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json(['token' => $token, 'user' => $user], 201);

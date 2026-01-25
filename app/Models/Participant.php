@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Participant extends Model {
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected $fillable = ['trip_id', 'user_id', 'name'];
+    protected $fillable = ['trip_id', 'user_id', 'name', 'email'];
 
     public function user() {
         return $this->belongsTo(User::class);
