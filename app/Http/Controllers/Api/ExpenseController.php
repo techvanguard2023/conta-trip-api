@@ -26,6 +26,7 @@ class ExpenseController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'payer_id' => 'required|exists:participants,id',
             'category' => 'required|string',
+            'split_type' => 'sometimes|string|in:equal,custom',
             'splits' => 'required|array|min:1',
             'splits.*.memberId' => 'required|exists:participants,id',
             'splits.*.amount' => 'required|numeric'
@@ -49,7 +50,8 @@ class ExpenseController extends Controller
                 'amount' => $request->amount,
                 'payer_id' => $request->payer_id,
                 'category' => $request->category,
-                'date' => now()
+                'date' => now(),
+                'split_type' => $request->input('split_type', 'equal')
             ]);
 
             foreach ($request->splits as $split) {
@@ -114,6 +116,7 @@ class ExpenseController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'payer_id' => 'required|exists:participants,id',
             'category' => 'required|string',
+            'split_type' => 'sometimes|string|in:equal,custom',
             'splits' => 'required|array|min:1',
             'splits.*.memberId' => 'required|exists:participants,id',
             'splits.*.amount' => 'required|numeric'
@@ -136,6 +139,7 @@ class ExpenseController extends Controller
                 'amount' => $request->amount,
                 'payer_id' => $request->payer_id,
                 'category' => $request->category,
+                'split_type' => $request->input('split_type', $expense->split_type ?? 'equal'),
                 // Mantemos a data original da despesa ou permitimos editar? 
                 // Geralmente despesas tem data. Se não vier no request, mantemos.
             ]);

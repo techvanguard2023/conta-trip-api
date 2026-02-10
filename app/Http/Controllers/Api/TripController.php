@@ -83,7 +83,10 @@ class TripController extends Controller
 
     public function join(Request $request)
     {
-        $request->validate(['code' => 'required|string']);
+        $request->validate([
+            'code' => 'required|string',
+            'include_retroactive' => 'sometimes|boolean'
+        ]);
 
         $trip = Trip::where('invite_code', $request->code)->first();
 
@@ -100,11 +103,15 @@ class TripController extends Controller
             return response()->json(['message' => 'Você já está neste grupo.'], 409);
         }
 
-        Participant::create([
+        $participant = Participant::create([
             'trip_id' => $trip->id,
             'user_id' => Auth::id(),
             'name' => Auth::user()->name
         ]);
+
+        if ($request->include_retroactive) {
+            $this->processRetroactiveInclusion($trip, $participant);
+        }
 
         return response()->json($trip->load('participants'));
     }
@@ -177,7 +184,8 @@ class TripController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email'
+            'email' => 'nullable|email',
+            'include_retroactive' => 'sometimes|boolean'
         ]);
 
         // Verificar se já existe um participante com o mesmo e-mail (se fornecido)
@@ -199,6 +207,10 @@ class TripController extends Controller
             'name' => $request->name,
             'email' => $request->email
         ]);
+
+        if ($request->include_retroactive) {
+            $this->processRetroactiveInclusion($trip, $participant);
+        }
 
         return response()->json([
             'message' => 'Participante adicionado com sucesso.',
@@ -268,5 +280,42 @@ class TripController extends Controller
         $trip->update($validated);
 
         return response()->json($trip);
+    }
+
+    /**
+     * Processa a inclusão retroativa de um participante em todas as despesas de consumo.
+     */
+    private function processRetroactiveInclusion($trip, $participant)
+    {
+        // 1. Buscamos apenas despesas que NÃO sejam da categoria 'payment'
+        // Isso garante que acertos de contas (PIXs) já realizados não sejam alterados.
+        $expenses = $trip->expenses()->where('category', '!=', 'payment')->get();
+
+        foreach ($expenses as $expense) {
+            // 2. Verifica se o participante já não possui um split nessa despesa (prevenção)
+            $exists = $expense->splits()->where('participant_id', $participant->id)->exists();
+            
+            if (!$exists) {
+                // 3. Adiciona o novo participante no rateio
+                $expense->splits()->create([
+                    'participant_id' => $participant->id,
+                    'amount' => 0 // Será atualizado no passo seguinte
+                ]);
+
+                // 4. Recalcula a divisão igualitária
+                // Pegamos o total de pessoas agora participando desta despesa
+                $totalMembers = $expense->splits()->count();
+                
+                if ($totalMembers > 0) {
+                    $newAmountPerPerson = $expense->amount / $totalMembers;
+
+                    // 5. Atualiza TODOS os splits desta despesa para o novo valor
+                    // Isso faz com que a dívida dos antigos diminua proporcionalmente.
+                    $expense->splits()->update([
+                        'amount' => round($newAmountPerPerson, 2)
+                    ]);
+                }
+            }
+        }
     }
 }

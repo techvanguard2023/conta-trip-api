@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Expense extends Model {
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected $fillable = ['trip_id', 'description', 'amount', 'payer_id', 'category', 'date'];
+    protected $fillable = ['trip_id', 'description', 'amount', 'payer_id', 'category', 'date', 'split_type'];
 
     public function splits() {
         return $this->hasMany(ExpenseSplit::class);
