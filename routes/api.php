@@ -52,6 +52,8 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/trips/{trip}/expenses', [ExpenseController::class, 'index']); 
         Route::post('/trips/{trip}/expenses', [ExpenseController::class, 'store']); 
+        Route::get('/expenses/{expense}', [ExpenseController::class, 'show']); 
+        Route::put('/expenses/{expense}', [ExpenseController::class, 'update']); 
         Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy']); 
 
         Route::get('/trips/{trip}/dashboard', [DashboardController::class, 'index']);

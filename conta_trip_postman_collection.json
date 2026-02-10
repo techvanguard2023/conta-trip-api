@@ -342,6 +342,64 @@
                     "response": []
                 },
                 {
+                    "name": "Get Expense",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/expenses/{{expense_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "expenses",
+                                "{{expense_uuid}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Expense",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"description\": \"Jantar Alterado\",\n    \"amount\": 160.00,\n    \"payer_id\": \"{{participant_uuid}}\",\n    \"category\": \"food\",\n    \"splits\": [\n        {\n            \"memberId\": \"{{participant_uuid}}\",\n            \"amount\": 80.00\n        },\n        {\n            \"memberId\": \"{{other_participant_uuid}}\",\n            \"amount\": 80.00\n        }\n    ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/expenses/{{expense_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "expenses",
+                                "{{expense_uuid}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
                     "name": "Delete Expense",
                     "request": {
                         "method": "DELETE",

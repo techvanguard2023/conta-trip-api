@@ -1,0 +1,40 @@
+
+   FAIL  Tests\Feature\ExpenseUpdateTest
+  ⨯ it can update an expense
+  ⨯ it fails update if splits do not match amount
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\ExpenseUpdateTest > it can update a…  QueryException   
+  could not find driver (Connection: mysql, SQL: select exists (select 1 from information_schema.tables where table_schema = schema() and table_name = 'migrations' and table_type in ('BASE TABLE', 'SYSTEM VERSIONED')) as `exists`)
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:826
+    822▕                     $this->getName(), $query, $this->prepareBindings($bindings), $e
+    823▕                 );
+    824▕             }
+    825▕ 
+  ➜ 826▕             throw new QueryException(
+    827▕                 $this->getName(), $query, $this->prepareBindings($bindings), $e
+    828▕             );
+    829▕         }
+    830▕     }
+
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\ExpenseUpdateTest > it fails update…  QueryException   
+  could not find driver (Connection: mysql, SQL: select exists (select 1 from information_schema.tables where table_schema = schema() and table_name = 'migrations' and table_type in ('BASE TABLE', 'SYSTEM VERSIONED')) as `exists`)
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:826
+    822▕                     $this->getName(), $query, $this->prepareBindings($bindings), $e
+    823▕                 );
+    824▕             }
+    825▕ 
+  ➜ 826▕             throw new QueryException(
+    827▕                 $this->getName(), $query, $this->prepareBindings($bindings), $e
+    828▕             );
+    829▕         }
+    830▕     }
+
+
+
+  Tests:    2 failed (0 assertions)
+  Duration: 0.21s
+

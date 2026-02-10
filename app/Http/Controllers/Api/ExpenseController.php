@@ -102,6 +102,65 @@ class ExpenseController extends Controller
         }
     }
 
+    public function show(Expense $expense)
+    {
+        return response()->json($expense->load('splits'));
+    }
+
+    public function update(Request $request, Expense $expense)
+    {
+        $request->validate([
+            'description' => 'required|string',
+            'amount' => 'required|numeric|min:0.01',
+            'payer_id' => 'required|exists:participants,id',
+            'category' => 'required|string',
+            'splits' => 'required|array|min:1',
+            'splits.*.memberId' => 'required|exists:participants,id',
+            'splits.*.amount' => 'required|numeric'
+        ]);
+        
+        $sumSplits = collect($request->splits)->sum('amount');
+        if (abs($sumSplits - $request->amount) > 0.01) {
+             return response()->json([
+                'message' => 'A soma das divisões não corresponde ao valor total da despesa',
+                'total' => $request->amount,
+                'sum' => $sumSplits
+             ], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $expense->update([
+                'description' => $request->description,
+                'amount' => $request->amount,
+                'payer_id' => $request->payer_id,
+                'category' => $request->category,
+                // Mantemos a data original da despesa ou permitimos editar? 
+                // Geralmente despesas tem data. Se não vier no request, mantemos.
+            ]);
+
+            // Atualiza splits: remove os antigos e cria os novos
+            $expense->splits()->delete();
+
+            foreach ($request->splits as $split) {
+                ExpenseSplit::create([
+                    'expense_id' => $expense->id,
+                    'participant_id' => $split['memberId'],
+                    'amount' => $split['amount']
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json($expense->load('splits'));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Erro ao atualizar despesa', 'error' => $e->getMessage()], 500);
+        }
+    }
+
     public function destroy(Expense $expense)
     {
         $expense->delete();
