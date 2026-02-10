@@ -256,4 +256,17 @@ class TripController extends Controller
             'message' => 'Participante removido com sucesso.'
         ], 200);
     }
+
+    public function update(Request $request, Trip $trip)
+    {
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'description' => 'nullable|string',
+            'calculation_algorithm' => 'sometimes|string|in:optimized,direct', // Validação
+        ]);
+
+        $trip->update($validated);
+
+        return response()->json($trip);
+    }
 }

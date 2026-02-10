@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Trip extends Model {
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected $fillable = ['name', 'description', 'invite_code', 'currency', 'start_date', 'created_by'];
+    protected $fillable = ['name', 'description', 'invite_code', 'calculation_algorithm', 'currency', 'start_date', 'created_by'];
 
     public function participants() {
         return $this->hasMany(Participant::class);

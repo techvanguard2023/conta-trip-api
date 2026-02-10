@@ -49,6 +49,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/trips/{id}', [TripController::class, 'destroy']); 
         Route::post('/trips/{trip}/participants', [TripController::class, 'addParticipant']);
         Route::delete('/trips/{trip}/participants/{participantId}', [TripController::class, 'removeParticipant']);
+        Route::put('/trips/{trip}', [TripController::class, 'update']);
 
         Route::get('/trips/{trip}/expenses', [ExpenseController::class, 'index']); 
         Route::post('/trips/{trip}/expenses', [ExpenseController::class, 'store']); 
