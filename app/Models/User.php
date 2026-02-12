@@ -33,6 +33,7 @@ class User extends Authenticatable
         'password',
         'pix_key',
         'fcm_token',
+        'profile_image',
     ];
 
     /**
@@ -56,5 +57,17 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the full URL for the profile image.
+     */
+    public function getProfileImageUrlAttribute(): ?string
+    {
+        if (!$this->profile_image) {
+            return null;
+        }
+        
+        return asset('storage/' . $this->profile_image);
     }
 }

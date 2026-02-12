@@ -98,4 +98,54 @@ class UserController extends Controller
             return response()->json(['message' => 'Erro ao enviar notificação: ' . $e->getMessage()], 500);
         }
     }
+
+    public function uploadProfileImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,jpg,png|max:2048', // max 2MB
+        ]);
+
+        $user = $request->user();
+
+        // Deletar imagem antiga se existir
+        if ($user->profile_image) {
+            \Storage::disk('public')->delete($user->profile_image);
+        }
+
+        // Salvar nova imagem
+        $path = $request->file('image')->store('profile-images', 'public');
+
+        // Atualizar usuário
+        $user->update([
+            'profile_image' => $path
+        ]);
+
+        return response()->json([
+            'message' => 'Imagem de perfil atualizada com sucesso',
+            'profile_image_url' => $user->profile_image_url
+        ]);
+    }
+
+    public function deleteProfileImage(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user->profile_image) {
+            return response()->json([
+                'message' => 'Usuário não possui imagem de perfil'
+            ], 404);
+        }
+
+        // Deletar arquivo
+        \Storage::disk('public')->delete($user->profile_image);
+
+        // Atualizar usuário
+        $user->update([
+            'profile_image' => null
+        ]);
+
+        return response()->json([
+            'message' => 'Imagem de perfil removida com sucesso'
+        ]);
+    }
 }

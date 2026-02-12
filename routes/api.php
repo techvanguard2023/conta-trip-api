@@ -38,6 +38,9 @@ Route::prefix('v1')->group(function () {
         Route::put('/change-password', [AuthController::class, 'changePassword']);
         Route::post('/fcm-token', [UserController::class, 'updateFcmToken']);
         Route::get('/test-fcm', [UserController::class, 'testFcmNotification']);
+        
+        Route::post('/upload-profile-image', [UserController::class, 'uploadProfileImage']);
+        Route::delete('/delete-profile-image', [UserController::class, 'deleteProfileImage']);
 
         Route::get('/users/{userId}/pix', [UserController::class, 'getPixKey']);
 
