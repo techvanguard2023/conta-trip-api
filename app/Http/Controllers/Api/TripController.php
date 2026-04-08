@@ -266,8 +266,8 @@ class TripController extends Controller
 
         if ($hasExpenses) {
             return response()->json([
-                'message' => 'Não é possível remover este participante pois ele possui despesas associadas.'
-            ], 409);
+                'message' => 'Não é possível remover participante, existem despesas associadas.'
+            ], 400);
         }
 
         $participant->delete();
