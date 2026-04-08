@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\Trip;
 use App\Models\Participant;
+use App\Http\Requests\UpdateTripStatusRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +15,7 @@ class TripController extends Controller
     public function index(Request $request)
     {
         // Retorna viagens onde o usuário logado é um participante
-        $query = Trip::whereHas('participants', function($q) {
+        $query = Trip::whereHas('participants', function ($q) {
             $q->where('user_id', Auth::id());
         })->with('participants')->latest();
 
@@ -102,8 +102,8 @@ class TripController extends Controller
 
         // Verifica se já participa
         $exists = Participant::where('trip_id', $trip->id)
-                             ->where('user_id', Auth::id())
-                             ->exists();
+            ->where('user_id', Auth::id())
+            ->exists();
 
         if ($exists) {
             return response()->json(['message' => 'Você já está neste grupo.'], 409);
@@ -159,11 +159,13 @@ class TripController extends Controller
         // Buscar participantes que possuem um usuário associado
         $pixKeys = $trip->participants()
             ->whereNotNull('user_id')
-            ->with(['user' => function($query) {
-                $query->select('id', 'name', 'pix_key');
-            }])
+            ->with([
+                'user' => function ($query) {
+                    $query->select('id', 'name', 'pix_key');
+                }
+            ])
             ->get()
-            ->map(function($participant) {
+            ->map(function ($participant) {
                 return [
                     'user_id' => $participant->user_id,
                     'name' => $participant->name,
@@ -254,18 +256,18 @@ class TripController extends Controller
 
         // Verificar se o participante tem despesas associadas
         $hasExpenses = \App\Models\Expense::where('trip_id', $trip->id)
-            ->where(function($query) use ($participant) {
+            ->where(function ($query) use ($participant) {
                 $query->where('payer_id', $participant->id)
-                      ->orWhereHas('splits', function($q) use ($participant) {
-                          $q->where('participant_id', $participant->id);
-                      });
+                    ->orWhereHas('splits', function ($q) use ($participant) {
+                        $q->where('participant_id', $participant->id);
+                    });
             })
             ->exists();
 
         if ($hasExpenses) {
             return response()->json([
-                'message' => 'Não é possível remover este participante pois ele possui despesas associadas.'
-            ], 409);
+                'message' => 'Não é possível remover participante, existem despesas associadas.'
+            ], 400);
         }
 
         $participant->delete();
@@ -279,12 +281,22 @@ class TripController extends Controller
     {
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'sometimes|string',
             'calculation_algorithm' => 'sometimes|string|in:optimized,direct', // Validação
             'status' => 'sometimes|string|in:open,archived', // Validação
         ]);
 
         $trip->update($validated);
+
+        return response()->json($trip);
+    }
+
+    public function updateStatus(UpdateTripStatusRequest $request, Trip $trip)
+    {
+        // Verifica permissão usando Policy
+        $this->authorize('updateStatus', $trip);
+
+        $trip->update($request->validated());
 
         return response()->json($trip);
     }
@@ -301,7 +313,7 @@ class TripController extends Controller
         foreach ($expenses as $expense) {
             // 2. Verifica se o participante já não possui um split nessa despesa (prevenção)
             $exists = $expense->splits()->where('participant_id', $participant->id)->exists();
-            
+
             if (!$exists) {
                 // 3. Adiciona o novo participante no rateio
                 $expense->splits()->create([
@@ -312,7 +324,7 @@ class TripController extends Controller
                 // 4. Recalcula a divisão igualitária
                 // Pegamos o total de pessoas agora participando desta despesa
                 $totalMembers = $expense->splits()->count();
-                
+
                 if ($totalMembers > 0) {
                     $newAmountPerPerson = $expense->amount / $totalMembers;
 

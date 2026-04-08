@@ -28,7 +28,7 @@ Route::prefix('v1')->group(function () {
         return redirect("https://www.divididinho.com.br/?token={$token}&email={$email}");
     })->name('password.reset');
     Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
-    
+
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -38,27 +38,28 @@ Route::prefix('v1')->group(function () {
         Route::put('/change-password', [AuthController::class, 'changePassword']);
         Route::post('/fcm-token', [UserController::class, 'updateFcmToken']);
         Route::get('/test-fcm', [UserController::class, 'testFcmNotification']);
-        
+
         Route::post('/upload-profile-image', [UserController::class, 'uploadProfileImage']);
         Route::delete('/delete-profile-image', [UserController::class, 'deleteProfileImage']);
 
         Route::get('/users/{userId}/pix', [UserController::class, 'getPixKey']);
 
-        Route::get('/trips', [TripController::class, 'index']); 
-        Route::post('/trips', [TripController::class, 'store']); 
-        Route::get('/trips/{trip}', [TripController::class, 'show']); 
-        Route::get('/trips/{trip}/pix-keys', [TripController::class, 'listPixKeys']); 
-        Route::post('/trips/join', [TripController::class, 'join']); 
-        Route::delete('/trips/{id}', [TripController::class, 'destroy']); 
+        Route::get('/trips', [TripController::class, 'index']);
+        Route::post('/trips', [TripController::class, 'store']);
+        Route::get('/trips/{trip}', [TripController::class, 'show']);
+        Route::get('/trips/{trip}/pix-keys', [TripController::class, 'listPixKeys']);
+        Route::post('/trips/join', [TripController::class, 'join']);
+        Route::delete('/trips/{id}', [TripController::class, 'destroy']);
         Route::post('/trips/{trip}/participants', [TripController::class, 'addParticipant']);
         Route::delete('/trips/{trip}/participants/{participantId}', [TripController::class, 'removeParticipant']);
         Route::put('/trips/{trip}', [TripController::class, 'update']);
+        Route::put('/trips/{trip}/status', [TripController::class, 'updateStatus']);
 
-        Route::get('/trips/{trip}/expenses', [ExpenseController::class, 'index']); 
-        Route::post('/trips/{trip}/expenses', [ExpenseController::class, 'store']); 
-        Route::get('/expenses/{expense}', [ExpenseController::class, 'show']); 
-        Route::put('/expenses/{expense}', [ExpenseController::class, 'update']); 
-        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy']); 
+        Route::get('/trips/{trip}/expenses', [ExpenseController::class, 'index']);
+        Route::post('/trips/{trip}/expenses', [ExpenseController::class, 'store']);
+        Route::get('/expenses/{expense}', [ExpenseController::class, 'show']);
+        Route::put('/expenses/{expense}', [ExpenseController::class, 'update']);
+        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy']);
 
         Route::get('/trips/{trip}/dashboard', [DashboardController::class, 'index']);
     });
