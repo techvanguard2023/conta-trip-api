@@ -289,6 +289,24 @@ class TripController extends Controller
         return response()->json($trip);
     }
 
+    public function updateStatus(Request $request, Trip $trip)
+    {
+        // Verifica se o usuário autenticado é o criador da trip
+        if ($trip->created_by !== Auth::id()) {
+            return response()->json([
+                'message' => 'Você não tem permissão para atualizar o status desta viagem.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|string|in:active,completed,cancelled',
+        ]);
+
+        $trip->update($validated);
+
+        return response()->json($trip);
+    }
+
     /**
      * Processa a inclusão retroativa de um participante em todas as despesas de consumo.
      */
