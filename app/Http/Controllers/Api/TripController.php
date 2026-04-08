@@ -19,11 +19,17 @@ class TripController extends Controller
             $q->where('user_id', Auth::id());
         })->with('participants')->latest();
 
+        // Filtro por status (opcional)
+        if ($request->has('status')) {
+            $status = $request->input('status');
+            $query->where('status', $status);
+        }
+
         // Paginação Opcional (Limit & Offset)
         if ($request->has('limit')) {
             $limit = (int) $request->input('limit');
             $offset = (int) $request->input('offset', 0); // Default 0
-            
+
             $query->skip($offset)->take($limit);
         }
 
