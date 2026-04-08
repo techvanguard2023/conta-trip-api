@@ -46,22 +46,25 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/trips', [TripController::class, 'index']);
         Route::post('/trips', [TripController::class, 'store']);
-        Route::get('/trips/{trip}', [TripController::class, 'show']);
-        Route::get('/trips/{trip}/pix-keys', [TripController::class, 'listPixKeys']);
         Route::post('/trips/join', [TripController::class, 'join']);
-        Route::delete('/trips/{id}', [TripController::class, 'destroy']);
+
+        // Rotas específicas ANTES de rotas genéricas com parâmetro
+        Route::put('/trips/{trip}/status', [TripController::class, 'updateStatus']);
+        Route::get('/trips/{trip}/pix-keys', [TripController::class, 'listPixKeys']);
         Route::post('/trips/{trip}/participants', [TripController::class, 'addParticipant']);
         Route::delete('/trips/{trip}/participants/{participantId}', [TripController::class, 'removeParticipant']);
-        Route::put('/trips/{trip}', [TripController::class, 'update']);
-        Route::put('/trips/{trip}/status', [TripController::class, 'updateStatus']);
-
         Route::get('/trips/{trip}/expenses', [ExpenseController::class, 'index']);
         Route::post('/trips/{trip}/expenses', [ExpenseController::class, 'store']);
+        Route::get('/trips/{trip}/dashboard', [DashboardController::class, 'index']);
+
+        // Rotas genéricas por último
+        Route::get('/trips/{trip}', [TripController::class, 'show']);
+        Route::put('/trips/{trip}', [TripController::class, 'update']);
+        Route::delete('/trips/{id}', [TripController::class, 'destroy']);
+
         Route::get('/expenses/{expense}', [ExpenseController::class, 'show']);
         Route::put('/expenses/{expense}', [ExpenseController::class, 'update']);
         Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy']);
-
-        Route::get('/trips/{trip}/dashboard', [DashboardController::class, 'index']);
     });
 
 });
