@@ -281,7 +281,7 @@ class TripController extends Controller
     {
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'sometimes|string',
             'calculation_algorithm' => 'sometimes|string|in:optimized,direct', // Validação
             'status' => 'sometimes|string|in:open,archived', // Validação
         ]);
