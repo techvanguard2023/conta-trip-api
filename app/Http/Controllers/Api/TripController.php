@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Trip;
 use App\Models\Participant;
 use App\Http\Requests\UpdateTripStatusRequest;
+use App\Http\Requests\UpdateTripRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
@@ -117,6 +118,20 @@ class TripController extends Controller
 
         if ($request->include_retroactive) {
             $this->processRetroactiveInclusion($trip, $participant);
+        }
+
+        return response()->json($trip->load('participants'));
+    }
+
+    public function show(Trip $trip)
+    {
+        // Verifica se o usuário autenticado é um participante do grupo
+        $isParticipant = $trip->participants()->where('user_id', Auth::id())->exists();
+
+        if (!$isParticipant) {
+            return response()->json([
+                'message' => 'Você não tem permissão para visualizar este grupo.'
+            ], 403);
         }
 
         return response()->json($trip->load('participants'));
@@ -277,16 +292,18 @@ class TripController extends Controller
         ], 200);
     }
 
-    public function update(Request $request, Trip $trip)
+    public function update(UpdateTripRequest $request, Trip $trip)
     {
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
-            'calculation_algorithm' => 'sometimes|string|in:optimized,direct', // Validação
-            'status' => 'sometimes|string|in:open,archived', // Validação
-        ]);
+        // Verifica se o usuário autenticado é um participante do grupo
+        $isParticipant = $trip->participants()->where('user_id', Auth::id())->exists();
 
-        $trip->update($validated);
+        if (!$isParticipant) {
+            return response()->json([
+                'message' => 'Você não tem permissão para editar este grupo.'
+            ], 403);
+        }
+
+        $trip->update($request->validated());
 
         return response()->json($trip);
     }
