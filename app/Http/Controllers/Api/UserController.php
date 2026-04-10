@@ -6,31 +6,20 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Trip;
+use App\Http\Requests\UpdateUserProfileRequest;
 
 class UserController extends Controller
 {
-    public function updateProfile(Request $request)
+    public function updateProfile(UpdateUserProfileRequest $request)
     {
         $user = $request->user();
-        
-        // Mapear pixKey para pix_key se enviado em camelCase
-        if ($request->has('pixKey')) {
-            $request->merge(['pix_key' => $request->input('pixKey')]);
-        }
-        
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $user->id,
-            'phone' => 'sometimes|string|max:20',
-            'pix_key' => 'nullable|string|max:255',
-        ]);
-        
-        $user->update($validated);
-        
+
+        $user->update($request->validated());
+
         return response()->json([
             'message' => 'Perfil atualizado com sucesso',
             'data' => $user
-        ]);
+        ], 200);
     }
 
     public function getPixKey(Request $request, $userId)
