@@ -10,13 +10,14 @@
       "projectId": "personal",
       "projectName": "Personal",
       "instanceIdentifier": "integrations_n8n_ghqegs_easypanel_host_robson_p",
+      "workflowDir": "workflows/integrations_n8n_ghqegs_easypanel_host_robson_p/personal",
       "verification": {
         "status": "verified",
         "normalizedHost": "https://integrations-n8n.ghqegs.easypanel.host",
         "userId": "a5a464fd-0b41-4ac2-b297-6da92acedb63",
         "userName": "Robson Pedreira",
         "userEmail": "masterdba6@gmail.com",
-        "lastCheckedAt": "2026-04-10T16:37:02.384Z"
+        "lastCheckedAt": "2026-04-15T12:06:34.357Z"
       }
     }
   ],
@@ -24,5 +25,6 @@
   "syncFolder": "workflows",
   "projectId": "personal",
   "projectName": "Personal",
-  "instanceIdentifier": "integrations_n8n_ghqegs_easypanel_host_robson_p"
+  "instanceIdentifier": "integrations_n8n_ghqegs_easypanel_host_robson_p",
+  "workflowDir": "workflows/integrations_n8n_ghqegs_easypanel_host_robson_p/personal"
 }
