@@ -114,8 +114,10 @@ class FirebaseNotificationService
         }
 
         if ($async) {
-            // Enfileirar como bulk job (sem log, o job vai logar)
-            \App\Jobs\SendBulkNotificationsJob::dispatch($tokens, $title, $body, $data);
+            // Enfileirar cada token como um job separado (sem o wrapper de bulk)
+            foreach ($tokens as $token) {
+                \App\Jobs\SendNotificationJob::dispatch($token, $title, $body, $data);
+            }
 
             return [
                 'queued' => true,
