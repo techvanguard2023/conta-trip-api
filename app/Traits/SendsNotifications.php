@@ -29,7 +29,7 @@ trait SendsNotifications
     }
 
     /**
-     * Enviar notificação de nova despesa
+     * Enviar notificação de nova despesa (assíncrono por padrão)
      */
     protected function notifyNewExpense($trip, $expense)
     {
@@ -40,15 +40,17 @@ trait SendsNotifications
         }
 
         try {
-            $service = new FirebaseNotificationService();
+            // Usar modo assíncrono para não bloquear a requisição
+            $service = new FirebaseNotificationService(true);
             return $service->notifyNewExpense($trip, $expense, $tokens);
         } catch (\Exception $e) {
-            \Log::error('Erro ao enviar notificação de despesa', ['error' => $e->getMessage()]);
+            \Log::error('Erro ao enfileirar notificação de despesa', ['error' => $e->getMessage()]);
+            // Não lançar exceção para não falhar a requisição
         }
     }
 
     /**
-     * Enviar notificação de novo membro
+     * Enviar notificação de novo membro (assíncrono por padrão)
      */
     protected function notifyNewMember($trip, $member)
     {
@@ -59,15 +61,15 @@ trait SendsNotifications
         }
 
         try {
-            $service = new FirebaseNotificationService();
+            $service = new FirebaseNotificationService(true);
             return $service->notifyNewMember($trip, $member, $tokens);
         } catch (\Exception $e) {
-            \Log::error('Erro ao enviar notificação de novo membro', ['error' => $e->getMessage()]);
+            \Log::error('Erro ao enfileirar notificação de novo membro', ['error' => $e->getMessage()]);
         }
     }
 
     /**
-     * Enviar notificação de alteração de status
+     * Enviar notificação de alteração de status (assíncrono por padrão)
      */
     protected function notifyTripStatusChanged($trip)
     {
@@ -78,15 +80,15 @@ trait SendsNotifications
         }
 
         try {
-            $service = new FirebaseNotificationService();
+            $service = new FirebaseNotificationService(true);
             return $service->notifyTripStatusChanged($trip, $tokens);
         } catch (\Exception $e) {
-            \Log::error('Erro ao enviar notificação de status', ['error' => $e->getMessage()]);
+            \Log::error('Erro ao enfileirar notificação de status', ['error' => $e->getMessage()]);
         }
     }
 
     /**
-     * Enviar notificação de atualização de despesa
+     * Enviar notificação de atualização de despesa (assíncrono por padrão)
      */
     protected function notifyExpenseUpdated($trip, $expense)
     {
@@ -97,10 +99,10 @@ trait SendsNotifications
         }
 
         try {
-            $service = new FirebaseNotificationService();
+            $service = new FirebaseNotificationService(true);
             return $service->notifyExpenseUpdated($trip, $expense, $tokens);
         } catch (\Exception $e) {
-            \Log::error('Erro ao enviar notificação de atualização', ['error' => $e->getMessage()]);
+            \Log::error('Erro ao enfileirar notificação de atualização', ['error' => $e->getMessage()]);
         }
     }
 }
