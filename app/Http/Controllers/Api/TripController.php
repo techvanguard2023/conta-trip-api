@@ -7,12 +7,14 @@ use App\Models\Trip;
 use App\Models\Participant;
 use App\Http\Requests\UpdateTripStatusRequest;
 use App\Http\Requests\UpdateTripRequest;
+use App\Traits\SendsNotifications;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 
 class TripController extends Controller
 {
+    use SendsNotifications;
     public function index(Request $request)
     {
         // Retorna viagens onde o usuário logado é um participante
@@ -235,6 +237,9 @@ class TripController extends Controller
             $this->processRetroactiveInclusion($trip, $participant);
         }
 
+        // Enviar notificação de novo membro
+        $this->notifyNewMember($trip, $participant);
+
         return response()->json([
             'message' => 'Participante adicionado com sucesso.',
             'participant' => $participant
@@ -314,6 +319,9 @@ class TripController extends Controller
         $this->authorize('updateStatus', $trip);
 
         $trip->update($request->validated());
+
+        // Enviar notificação de alteração de status
+        $this->notifyTripStatusChanged($trip);
 
         return response()->json($trip);
     }

@@ -3,15 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\Trip;
 use App\Models\Expense;
 use App\Models\ExpenseSplit;
+use App\Traits\SendsNotifications;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
+    use SendsNotifications;
     public function index(Trip $trip)
     {
         // Verifica permissão (Policy seria o ideal)
@@ -64,37 +65,8 @@ class ExpenseController extends Controller
 
             DB::commit();
 
-            // Enviar Notificações para os outros membros do grupo
-            try {
-                $payer = \App\Models\Participant::find($request->payer_id);
-                $payerName = $payer ? $payer->name : 'Alguém';
-                
-                $participants = $trip->participants()
-                    ->whereNotNull('user_id')
-                    ->where('user_id', '!=', \Illuminate\Support\Facades\Auth::id())
-                    ->with('user')
-                    ->get();
-
-                $tokens = $participants->pluck('user.fcm_token')->filter()->unique()->toArray();
-
-                if (!empty($tokens)) {
-                    $firebaseService = new \App\Services\FirebaseNotificationService();
-                    foreach ($tokens as $token) {
-                        try {
-                            $firebaseService->sendNotification(
-                                $token,
-                                "Nova despesa: {$trip->name}",
-                                "{$payerName} adicionou: {$expense->description} - R$ " . number_format($expense->amount, 2, ',', '.')
-                            );
-                        } catch (\Exception $e) {
-                            \Illuminate\Support\Facades\Log::error("Erro ao enviar notificação FCM: " . $e->getMessage());
-                        }
-                    }
-                }
-            } catch (\Exception $e) {
-                // Logar erro mas não falhar a requisição de criação de despesa
-                \Illuminate\Support\Facades\Log::error("Erro no processo de notificação: " . $e->getMessage());
-            }
+            // Enviar notificação de nova despesa
+            $this->notifyNewExpense($trip, $expense);
 
             return response()->json($expense->load('splits'), 201);
 
@@ -156,6 +128,9 @@ class ExpenseController extends Controller
             }
 
             DB::commit();
+
+            // Enviar notificação de atualização de despesa
+            $this->notifyExpenseUpdated($expense->trip, $expense);
 
             return response()->json($expense->load('splits'));
 

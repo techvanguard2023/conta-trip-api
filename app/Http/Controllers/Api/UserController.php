@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Trip;
 use App\Http\Requests\UpdateUserProfileRequest;
+use App\Http\Requests\StoreNotificationTokenRequest;
 
 class UserController extends Controller
 {
@@ -50,20 +51,20 @@ class UserController extends Controller
         ]);
     }
 
-    public function updateFcmToken(Request $request)
+    public function updateFcmToken(StoreNotificationTokenRequest $request)
     {
-        $request->validate([
-            'token' => 'required|string'
-        ]);
-
         $user = $request->user();
         $user->update([
             'fcm_token' => $request->token
         ]);
 
         return response()->json([
-            'message' => 'FCM Token atualizado com sucesso'
-        ]);
+            'message' => 'Token de notificação armazenado com sucesso',
+            'data' => [
+                'user_id' => $user->id,
+                'token_updated_at' => now()
+            ]
+        ], 200);
     }
 
     public function testFcmNotification(Request $request)
