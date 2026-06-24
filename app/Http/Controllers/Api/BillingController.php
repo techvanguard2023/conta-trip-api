@@ -30,6 +30,15 @@ class BillingController extends Controller
         $user       = Auth::user();
         $customerId = $user->subscription?->stripe_customer_id;
 
+        // Valida se o customer existe no modo atual (live/test). Se não, cria um novo.
+        if ($customerId) {
+            try {
+                $this->stripe->customers->retrieve($customerId);
+            } catch (\Stripe\Exception\InvalidRequestException $e) {
+                $customerId = null;
+            }
+        }
+
         if (!$customerId) {
             $customer   = $this->stripe->customers->create(['email' => $user->email, 'name' => $user->name]);
             $customerId = $customer->id;
