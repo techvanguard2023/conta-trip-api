@@ -70,7 +70,7 @@ class BillingController extends Controller
                 'stripe_subscription_id' => $sub->id,
                 'plan'                   => $plan,
                 'status'                 => $sub->status,
-                'current_period_end'     => Carbon::createFromTimestamp($sub->current_period_end),
+                'current_period_end'     => $sub->current_period_end ? Carbon::createFromTimestamp($sub->current_period_end) : null,
             ]
         );
 
