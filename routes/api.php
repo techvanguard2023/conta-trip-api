@@ -65,6 +65,7 @@ Route::prefix('v1')->group(function () {
         Route::put('/trips/{trip}/recurring-expenses/activate', [RecurringExpenseController::class, 'activate']);
         Route::put('/trips/{trip}/recurring-expenses/deactivate', [RecurringExpenseController::class, 'deactivate']);
         Route::get('/trips/{trip}/recurring-expenses', [RecurringExpenseController::class, 'index']);
+        Route::get('/trips/{trip}/recurring-expenses/pending', [RecurringExpenseController::class, 'pendingOccurrences']);
         Route::post('/trips/{trip}/recurring-expenses', [RecurringExpenseController::class, 'store']);
 
         Route::put('/recurring-expenses/{recurringExpense}', [RecurringExpenseController::class, 'update']);

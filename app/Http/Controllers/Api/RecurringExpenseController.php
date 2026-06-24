@@ -8,6 +8,7 @@ use App\Models\ExpenseSplit;
 use App\Models\RecurringExpense;
 use App\Models\RecurringExpenseOccurrence;
 use App\Models\Trip;
+use App\Services\RecurringExpenseProcessor;
 use App\Traits\SendsNotifications;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -86,7 +87,40 @@ class RecurringExpenseController extends Controller
             'created_by'            => Auth::id(),
         ]);
 
-        return response()->json($recurringExpense, 201);
+        // Se a data de início é hoje, processa imediatamente sem esperar o job noturno
+        if (Carbon::parse($recurringExpense->next_occurrence_at)->isToday()) {
+            app(RecurringExpenseProcessor::class)->processOne($recurringExpense->fresh(['trip']));
+        }
+
+        return response()->json($recurringExpense->fresh(), 201);
+    }
+
+    public function pendingOccurrences(Trip $trip)
+    {
+        $isParticipant = $trip->participants()->where('user_id', Auth::id())->exists();
+
+        if (!$isParticipant) {
+            return response()->json(['message' => 'Acesso negado.'], 403);
+        }
+
+        $pending = RecurringExpenseOccurrence::whereHas('recurringExpense', function ($q) use ($trip) {
+                $q->where('trip_id', $trip->id)->where('status', 'active');
+            })
+            ->whereNull('expense_id')
+            ->with('recurringExpense')
+            ->get()
+            ->map(fn ($o) => [
+                'occurrence_id'   => $o->id,
+                'occurrence_date' => $o->occurrence_date,
+                'description'     => $o->recurringExpense->description,
+                'category'        => $o->recurringExpense->category,
+                'amount'          => $o->recurringExpense->amount,
+                'is_variable_amount' => $o->recurringExpense->is_variable_amount,
+                'split_config'    => $o->recurringExpense->split_config,
+                'recurring_expense_id' => $o->recurring_expense_id,
+            ]);
+
+        return response()->json($pending);
     }
 
     public function update(Request $request, RecurringExpense $recurringExpense)
