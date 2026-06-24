@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Limpa caches — nunca usar config:cache em ambiente com variáveis dinâmicas
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
+
 # Roda migrations automaticamente no deploy
 php artisan migrate --force
 
