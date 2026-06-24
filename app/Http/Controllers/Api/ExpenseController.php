@@ -68,6 +68,12 @@ class ExpenseController extends Controller
             // Enviar notificação de nova despesa
             $this->notifyNewExpense($trip, $expense);
 
+            if ($expense->category === 'payment') {
+                $this->notifyWhatsAppPayment($trip, $expense);
+            } else {
+                $this->notifyWhatsAppNewExpense($trip, $expense);
+            }
+
             return response()->json($expense->load('splits'), 201);
 
         } catch (\Exception $e) {

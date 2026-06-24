@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'secret'         => env('STRIPE_SECRET_KEY'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'public_key'     => env('STRIPE_PUBLISHABLE_KEY'),
+    ],
+
+    'evolution_go' => [
+        'url'     => env('EVOLUTION_GO_URL'),
+        'api_key' => env('EVOLUTION_GO_API_KEY'),
+    ],
+
 ];

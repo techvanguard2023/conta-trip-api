@@ -32,6 +32,7 @@ class UpdateUserProfileRequest extends FormRequest
             'phone' => 'sometimes|string|min:10|max:20',
             'pix_key' => 'nullable|string|max:255',
             'pixKey' => 'nullable|string|max:255', // Support camelCase
+            'whatsapp_notifications' => 'sometimes|boolean',
         ];
     }
 

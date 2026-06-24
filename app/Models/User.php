@@ -34,6 +34,7 @@ class User extends Authenticatable
         'pix_key',
         'fcm_token',
         'profile_image',
+        'whatsapp_notifications',
     ];
 
     /**
@@ -67,7 +68,42 @@ class User extends Authenticatable
         if (!$this->profile_image) {
             return null;
         }
-        
+
         return asset('storage/' . $this->profile_image);
+    }
+
+    public function subscription()
+    {
+        return $this->hasOne(Subscription::class);
+    }
+
+    public function ownedTrips()
+    {
+        return $this->hasMany(Trip::class, 'created_by');
+    }
+
+    public function hasActivePremium(): bool
+    {
+        return in_array($this->subscription?->status, ['active', 'trialing']);
+    }
+
+    public function activeGroupsCount(): int
+    {
+        return $this->ownedTrips()
+            ->where('recurring_expenses_enabled', true)
+            ->count();
+    }
+
+    public function isWithinGroupQuota(): bool
+    {
+        $limit = config("billing.plans.{$this->subscription?->plan}.group_limit");
+        return $limit === null || $this->activeGroupsCount() <= $limit;
+    }
+
+    public function canActivateNewGroup(): bool
+    {
+        if (!$this->hasActivePremium()) return false;
+        $limit = config("billing.plans.{$this->subscription->plan}.group_limit");
+        return $limit === null || $this->activeGroupsCount() < $limit;
     }
 }

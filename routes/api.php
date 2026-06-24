@@ -3,9 +3,12 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\TripController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\RecurringExpenseController;
+use App\Http\Controllers\Api\StripeWebhookController;
 use App\Events\TestNotification;
 use App\Http\Controllers\Api\UserController;
 
@@ -30,6 +33,9 @@ Route::prefix('v1')->group(function () {
     Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 
 
+    // Webhook Stripe — sem autenticação Sanctum
+    Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
+
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
@@ -44,9 +50,26 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/users/{userId}/pix', [UserController::class, 'getPixKey']);
 
+        // Billing
+        Route::get('/billing/plans', [BillingController::class, 'plans']);
+        Route::get('/billing/status', [BillingController::class, 'status']);
+        Route::post('/billing/checkout', [BillingController::class, 'checkout']);
+        Route::get('/billing/confirm', [BillingController::class, 'confirm']);
+        Route::post('/billing/portal', [BillingController::class, 'portal']);
+
         Route::get('/trips', [TripController::class, 'index']);
         Route::post('/trips', [TripController::class, 'store']);
         Route::post('/trips/join', [TripController::class, 'join']);
+
+        // Despesas Recorrentes
+        Route::put('/trips/{trip}/recurring-expenses/activate', [RecurringExpenseController::class, 'activate']);
+        Route::put('/trips/{trip}/recurring-expenses/deactivate', [RecurringExpenseController::class, 'deactivate']);
+        Route::get('/trips/{trip}/recurring-expenses', [RecurringExpenseController::class, 'index']);
+        Route::post('/trips/{trip}/recurring-expenses', [RecurringExpenseController::class, 'store']);
+
+        Route::put('/recurring-expenses/{recurringExpense}', [RecurringExpenseController::class, 'update']);
+        Route::delete('/recurring-expenses/{recurringExpense}', [RecurringExpenseController::class, 'destroy']);
+        Route::post('/recurring-expense-occurrences/{occurrence}/confirm', [RecurringExpenseController::class, 'confirmOccurrence']);
 
         // Rotas específicas ANTES de rotas genéricas com parâmetro
         Route::put('/trips/{trip}/status', [TripController::class, 'updateStatus']);

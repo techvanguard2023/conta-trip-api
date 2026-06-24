@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Trip extends Model {
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected $fillable = ['name', 'description', 'invite_code', 'calculation_algorithm', 'currency', 'status', 'start_date', 'created_by'];
+    protected $fillable = ['name', 'description', 'invite_code', 'calculation_algorithm', 'currency', 'status', 'start_date', 'created_by', 'recurring_expenses_enabled'];
 
     public function participants() {
         return $this->hasMany(Participant::class);
@@ -18,5 +18,10 @@ class Trip extends Model {
 
     public function expenses() {
         return $this->hasMany(Expense::class);
+    }
+
+    public function recurringExpenses()
+    {
+        return $this->hasMany(RecurringExpense::class);
     }
 }
