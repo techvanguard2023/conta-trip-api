@@ -69,7 +69,8 @@ class User extends Authenticatable
             return null;
         }
 
-        return asset('storage/' . $this->profile_image);
+        // Retorna caminho relativo — o frontend constrói a URL absoluta usando o base URL da API
+        return $this->profile_image;
     }
 
     public function subscription()

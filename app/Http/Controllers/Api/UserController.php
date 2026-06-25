@@ -112,7 +112,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Imagem de perfil atualizada com sucesso',
-            'profile_image_url' => $user->profile_image_url
+            'profile_image_url' => $path
         ]);
     }
 

@@ -6,6 +6,9 @@ php artisan cache:clear
 php artisan route:clear
 php artisan view:clear
 
+# Cria o symlink público do storage (necessário para servir imagens)
+php artisan storage:link --force
+
 # Roda migrations automaticamente no deploy
 php artisan migrate --force
 
