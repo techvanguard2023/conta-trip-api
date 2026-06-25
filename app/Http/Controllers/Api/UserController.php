@@ -97,22 +97,23 @@ class UserController extends Controller
 
         $user = $request->user();
 
-        // Deletar imagem antiga se existir
+        // Deletar imagem antiga se existir (Supabase ou, em registros antigos, disco local)
         if ($user->profile_image) {
-            \Storage::disk('public')->delete($user->profile_image);
+            $this->deleteStoredImage($user->profile_image);
         }
 
-        // Salvar nova imagem
-        $path = $request->file('image')->store('profile-images', 'public');
+        // Salvar nova imagem no Supabase Storage
+        $path = $request->file('image')->store('profile-images', 'supabase');
+        $url = \Storage::disk('supabase')->url($path);
 
         // Atualizar usuário
         $user->update([
-            'profile_image' => $path
+            'profile_image' => $url
         ]);
 
         return response()->json([
             'message' => 'Imagem de perfil atualizada com sucesso',
-            'profile_image_url' => $path
+            'profile_image_url' => $url
         ]);
     }
 
@@ -126,8 +127,7 @@ class UserController extends Controller
             ], 404);
         }
 
-        // Deletar arquivo
-        \Storage::disk('public')->delete($user->profile_image);
+        $this->deleteStoredImage($user->profile_image);
 
         // Atualizar usuário
         $user->update([
@@ -137,5 +137,18 @@ class UserController extends Controller
         return response()->json([
             'message' => 'Imagem de perfil removida com sucesso'
         ]);
+    }
+
+    private function deleteStoredImage(string $profileImage): void
+    {
+        if (str_starts_with($profileImage, 'http')) {
+            $path = parse_url($profileImage, PHP_URL_PATH);
+            $path = substr($path, strpos($path, 'profile-images/'));
+            \Storage::disk('supabase')->delete($path);
+            return;
+        }
+
+        // Registro antigo, salvo no disco local
+        \Storage::disk('public')->delete($profileImage);
     }
 }
