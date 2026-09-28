@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Subscription;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Stripe\Exception\SignatureVerificationException;
 use Stripe\Webhook;
 
@@ -23,6 +24,14 @@ class StripeWebhookController extends Controller
             return response()->json(['message' => 'Assinatura inválida.'], 400);
         }
 
+        // Stripe pode reenviar o mesmo evento (retries); evita processar
+        // duas vezes um evento já tratado (ex.: acionar a mesma notificação
+        // de assinatura ou sobrescrever um status mais novo com um antigo).
+        $idempotencyKey = "stripe_webhook_processed:{$event->id}";
+        if (Cache::has($idempotencyKey)) {
+            return response()->json(['received' => true]);
+        }
+
         match ($event->type) {
             'checkout.session.completed'    => $this->handleCheckoutCompleted($event->data->object),
             'customer.subscription.updated' => $this->handleSubscriptionUpdated($event->data->object),
@@ -30,6 +39,8 @@ class StripeWebhookController extends Controller
             'invoice.payment_failed'        => $this->handlePaymentFailed($event->data->object),
             default                         => null,
         };
+
+        Cache::put($idempotencyKey, true, now()->addDays(2));
 
         return response()->json(['received' => true]);
     }

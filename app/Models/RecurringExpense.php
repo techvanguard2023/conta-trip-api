@@ -52,9 +52,18 @@ class RecurringExpense extends Model
 
         return match ($frequency['type']) {
             'weekly'  => $from->copy()->addWeek(),
-            'monthly' => $from->copy()->addMonth()->day($frequency['dayOfMonth']),
-            'yearly'  => $from->copy()->addYear()->month($frequency['month'])->day($frequency['dayOfMonth']),
+            'monthly' => $this->withSafeDay($from->copy()->startOfMonth()->addMonth(), $frequency['dayOfMonth']),
+            'yearly'  => $this->withSafeDay($from->copy()->startOfMonth()->addYear()->month($frequency['month']), $frequency['dayOfMonth']),
             default   => $from->copy()->addMonth(),
         };
+    }
+
+    /**
+     * Aplica o dia desejado sem estourar pro mês seguinte quando o mês alvo
+     * for mais curto (ex.: dia 31 configurado, mês alvo é fevereiro).
+     */
+    private function withSafeDay(Carbon $date, int $dayOfMonth): Carbon
+    {
+        return $date->day(min($dayOfMonth, $date->daysInMonth));
     }
 }

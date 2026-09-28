@@ -9,4 +9,4 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::job(new ProcessRecurringExpenses)->dailyAt('00:00');
+Schedule::job(new ProcessRecurringExpenses)->dailyAt('00:00')->timezone('America/Sao_Paulo');

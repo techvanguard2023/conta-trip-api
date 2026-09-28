@@ -29,8 +29,10 @@ class RecurringExpenseProcessor
                 ['expense_id' => null]
             );
 
-            // Já existia e estava pendente — não reprocessar
-            if (!$occurrence->wasRecentlyCreated && $occurrence->expense_id === null) {
+            // Essa ocorrência (template + data) já tinha sido tratada antes
+            // (expense criada ou notificação de pendência já enviada) —
+            // não reprocessar, senão duplica a despesa em reexecuções do job.
+            if (!$occurrence->wasRecentlyCreated) {
                 DB::rollBack();
                 return;
             }

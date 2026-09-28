@@ -11,6 +11,7 @@ use App\Traits\SendsNotifications;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TripController extends Controller
 {
@@ -49,43 +50,47 @@ class TripController extends Controller
             'members.*.email' => 'nullable|email'
         ]);
 
-        $trip = Trip::create([
-            'name' => $request->name,
-            'description' => $request->description,
-            'start_date' => now(),
-            'invite_code' => strtoupper(Str::random(6)),
-            'created_by' => Auth::id()
-        ]);
+        $trip = DB::transaction(function () use ($request) {
+            $trip = Trip::create([
+                'name' => $request->name,
+                'description' => $request->description,
+                'start_date' => now(),
+                'invite_code' => strtoupper(Str::random(6)),
+                'created_by' => Auth::id()
+            ]);
 
-        // 1. Adicionar o Criador como Participante
-        Participant::create([
-            'trip_id' => $trip->id,
-            'user_id' => Auth::id(),
-            'name' => Auth::user()->name,
-            'email' => Auth::user()->email
-        ]);
+            // 1. Adicionar o Criador como Participante
+            Participant::create([
+                'trip_id' => $trip->id,
+                'user_id' => Auth::id(),
+                'name' => Auth::user()->name,
+                'email' => Auth::user()->email
+            ]);
 
-        // 2. Adicionar membros virtuais (sem user_id)
-        if ($request->has('members')) {
-            foreach ($request->members as $member) {
-                // Suporta tanto formato antigo (string) quanto novo (objeto)
-                if (is_string($member)) {
-                    Participant::create([
-                        'trip_id' => $trip->id,
-                        'user_id' => null,
-                        'name' => $member,
-                        'email' => null
-                    ]);
-                } else {
-                    Participant::create([
-                        'trip_id' => $trip->id,
-                        'user_id' => null,
-                        'name' => $member['name'],
-                        'email' => $member['email'] ?? null
-                    ]);
+            // 2. Adicionar membros virtuais (sem user_id)
+            if ($request->has('members')) {
+                foreach ($request->members as $member) {
+                    // Suporta tanto formato antigo (string) quanto novo (objeto)
+                    if (is_string($member)) {
+                        Participant::create([
+                            'trip_id' => $trip->id,
+                            'user_id' => null,
+                            'name' => $member,
+                            'email' => null
+                        ]);
+                    } else {
+                        Participant::create([
+                            'trip_id' => $trip->id,
+                            'user_id' => null,
+                            'name' => $member['name'],
+                            'email' => $member['email'] ?? null
+                        ]);
+                    }
                 }
             }
-        }
+
+            return $trip;
+        });
 
         return response()->json($trip->load('participants'), 201);
     }
@@ -331,35 +336,40 @@ class TripController extends Controller
      */
     private function processRetroactiveInclusion($trip, $participant)
     {
-        // 1. Buscamos apenas despesas que NÃO sejam da categoria 'payment'
-        // Isso garante que acertos de contas (PIXs) já realizados não sejam alterados.
-        $expenses = $trip->expenses()->where('category', '!=', 'payment')->get();
+        DB::transaction(function () use ($trip, $participant) {
+            // 1. Buscamos apenas despesas que NÃO sejam da categoria 'payment'
+            // Isso garante que acertos de contas (PIXs) já realizados não sejam alterados.
+            $expenses = $trip->expenses()->where('category', '!=', 'payment')->get();
 
-        foreach ($expenses as $expense) {
-            // 2. Verifica se o participante já não possui um split nessa despesa (prevenção)
-            $exists = $expense->splits()->where('participant_id', $participant->id)->exists();
+            foreach ($expenses as $expense) {
+                // 2. Verifica se o participante já não possui um split nessa despesa (prevenção)
+                $exists = $expense->splits()->where('participant_id', $participant->id)->exists();
 
-            if (!$exists) {
-                // 3. Adiciona o novo participante no rateio
-                $expense->splits()->create([
-                    'participant_id' => $participant->id,
-                    'amount' => 0 // Será atualizado no passo seguinte
-                ]);
-
-                // 4. Recalcula a divisão igualitária
-                // Pegamos o total de pessoas agora participando desta despesa
-                $totalMembers = $expense->splits()->count();
-
-                if ($totalMembers > 0) {
-                    $newAmountPerPerson = $expense->amount / $totalMembers;
-
-                    // 5. Atualiza TODOS os splits desta despesa para o novo valor
-                    // Isso faz com que a dívida dos antigos diminua proporcionalmente.
-                    $expense->splits()->update([
-                        'amount' => round($newAmountPerPerson, 2)
+                if (!$exists) {
+                    // 3. Adiciona o novo participante no rateio
+                    $expense->splits()->create([
+                        'participant_id' => $participant->id,
+                        'amount' => 0 // Será atualizado no passo seguinte
                     ]);
+
+                    // 4. Recalcula a divisão igualitária, distribuindo o
+                    // resto em centavos para que a soma bata exatamente com
+                    // o valor total da despesa (evita diferença de 1 centavo).
+                    $splits = $expense->splits()->orderBy('created_at')->get();
+                    $totalMembers = $splits->count();
+
+                    if ($totalMembers > 0) {
+                        $totalCents = (int) round($expense->amount * 100);
+                        $baseCents = intdiv($totalCents, $totalMembers);
+                        $remainderCents = $totalCents % $totalMembers;
+
+                        foreach ($splits as $index => $split) {
+                            $cents = $baseCents + ($index < $remainderCents ? 1 : 0);
+                            $split->update(['amount' => $cents / 100]);
+                        }
+                    }
                 }
             }
-        }
+        });
     }
 }
