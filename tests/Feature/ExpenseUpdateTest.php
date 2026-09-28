@@ -26,9 +26,11 @@ class ExpenseUpdateTest extends TestCase
             'invite_code' => 'TEST1234',
             'currency' => 'BRL',
             'start_date' => now(),
-            'created_by' => $user->id 
+            'created_by' => $user->id
         ]);
 
+        // Usuário autenticado precisa ser participante da trip (checagem de autorização)
+        Participant::create(['trip_id' => $trip->id, 'user_id' => $user->id, 'name' => $user->name]);
         $participant1 = Participant::create(['trip_id' => $trip->id, 'name' => 'Member 1']);
         $participant2 = Participant::create(['trip_id' => $trip->id, 'name' => 'Member 2']);
 
@@ -99,6 +101,7 @@ class ExpenseUpdateTest extends TestCase
             'created_by' => $user->id 
         ]);
 
+        Participant::create(['trip_id' => $trip->id, 'user_id' => $user->id, 'name' => $user->name]);
         $participant1 = Participant::create(['trip_id' => $trip->id, 'name' => 'Member 1']);
 
         $expense = Expense::create([
