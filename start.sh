@@ -12,8 +12,13 @@ php artisan storage:link --force
 # Roda migrations automaticamente no deploy
 php artisan migrate --force
 
-# Inicia o queue worker em background
-php artisan queue:work --sleep=3 --tries=3 --max-time=3600 &
+# Inicia o queue worker em background (reinicia automaticamente quando o
+# processo encerra por --max-time ou por falha — sem isso, o worker morre
+# após 1h e as notificações param de ser enviadas silenciosamente)
+while true; do
+    php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    sleep 2
+done &
 
 # Inicia o scheduler em background (roda a cada minuto)
 while true; do
