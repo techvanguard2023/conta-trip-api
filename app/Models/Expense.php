@@ -15,6 +15,10 @@ class Expense extends Model {
     public function splits() {
         return $this->hasMany(ExpenseSplit::class);
     }
+
+    public function trip() {
+        return $this->belongsTo(Trip::class);
+    }
     
     // Para carregar os dados completos na resposta JSON
     protected $with = ['splits']; 
