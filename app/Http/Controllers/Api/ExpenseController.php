@@ -6,37 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\Trip;
 use App\Models\Expense;
 use App\Models\ExpenseSplit;
+use App\Traits\AuthorizesTripAccess;
 use App\Traits\SendsNotifications;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
-    use SendsNotifications;
-
-    /**
-     * Garante que o usuário autenticado é participante da trip antes de
-     * permitir acesso às suas despesas (evita IDOR entre grupos).
-     */
-    private function authorizeTripAccess(Trip $trip): void
-    {
-        $isParticipant = $trip->participants()->where('user_id', \Illuminate\Support\Facades\Auth::id())->exists();
-
-        if (!$isParticipant) {
-            abort(403, 'Você não tem permissão para acessar despesas deste grupo.');
-        }
-    }
+    use SendsNotifications, AuthorizesTripAccess;
 
     public function index(Trip $trip)
     {
-        $this->authorizeTripAccess($trip);
+        $this->ensureIsParticipant($trip, 'Você não tem permissão para acessar despesas deste grupo.');
 
         return response()->json($trip->expenses()->with('splits')->latest('date')->get());
     }
 
     public function store(Request $request, Trip $trip)
     {
-        $this->authorizeTripAccess($trip);
+        $this->ensureIsParticipant($trip, 'Você não tem permissão para acessar despesas deste grupo.');
 
         $request->validate([
             'description' => 'required|string',
@@ -100,14 +88,14 @@ class ExpenseController extends Controller
 
     public function show(Expense $expense)
     {
-        $this->authorizeTripAccess($expense->trip);
+        $this->ensureIsParticipant($expense->trip, 'Você não tem permissão para acessar despesas deste grupo.');
 
         return response()->json($expense->load('splits'));
     }
 
     public function update(Request $request, Expense $expense)
     {
-        $this->authorizeTripAccess($expense->trip);
+        $this->ensureIsParticipant($expense->trip, 'Você não tem permissão para acessar despesas deste grupo.');
 
         $request->validate([
             'description' => 'required|string',
@@ -168,7 +156,7 @@ class ExpenseController extends Controller
 
     public function destroy(Expense $expense)
     {
-        $this->authorizeTripAccess($expense->trip);
+        $this->ensureIsParticipant($expense->trip, 'Você não tem permissão para acessar despesas deste grupo.');
 
         $expense->delete();
         return response()->json(['message' => 'Despesa removida']);

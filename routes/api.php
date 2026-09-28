@@ -9,7 +9,6 @@ use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\RecurringExpenseController;
 use App\Http\Controllers\Api\StripeWebhookController;
-use App\Events\TestNotification;
 use App\Http\Controllers\Api\UserController;
 
 Route::prefix('v1')->group(function () {
@@ -18,17 +17,18 @@ Route::prefix('v1')->group(function () {
         return response()->json(['status' => 'API V1 ContaTrip is alive!'], 200);
     });
 
-    Route::get('/test-push', function () {
-        event(new TestNotification("Mensagem de teste via URL"));
-        return "Evento disparado!";
-    });
-
     Route::post('login', [AuthController::class, 'login']);
     Route::post('register', [AuthController::class, 'register']);
     Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
     Route::get('reset-password/{token}', function (Request $request, $token) {
-        $email = $request->query('email');
-        return redirect("https://www.divididinho.com.br/?token={$token}&email={$email}");
+        $email = $request->query('email', '');
+
+        return redirect(
+            'https://www.divididinho.com.br/?' . http_build_query([
+                'token' => $token,
+                'email' => $email,
+            ])
+        );
     })->name('password.reset');
     Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 

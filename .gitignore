@@ -22,3 +22,9 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Scratch/debug output (não deve ser commitado)
+migration_*.txt
+test_output*.txt
+output*.txt
+tinker_*.php

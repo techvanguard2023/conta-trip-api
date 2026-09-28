@@ -7,6 +7,7 @@ use App\Models\Trip;
 use App\Models\Participant;
 use App\Http\Requests\UpdateTripStatusRequest;
 use App\Http\Requests\UpdateTripRequest;
+use App\Traits\AuthorizesTripAccess;
 use App\Traits\SendsNotifications;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 
 class TripController extends Controller
 {
-    use SendsNotifications;
+    use SendsNotifications, AuthorizesTripAccess;
     public function index(Request $request)
     {
         // Retorna viagens onde o usuário logado é um participante
@@ -132,14 +133,7 @@ class TripController extends Controller
 
     public function show(Trip $trip)
     {
-        // Verifica se o usuário autenticado é um participante do grupo
-        $isParticipant = $trip->participants()->where('user_id', Auth::id())->exists();
-
-        if (!$isParticipant) {
-            return response()->json([
-                'message' => 'Você não tem permissão para visualizar este grupo.'
-            ], 403);
-        }
+        $this->ensureIsParticipant($trip, 'Você não tem permissão para visualizar este grupo.');
 
         return response()->json($trip->load('participants'));
     }
@@ -169,14 +163,7 @@ class TripController extends Controller
 
     public function listPixKeys(Trip $trip)
     {
-        // Verificar se o usuário autenticado é um participante do grupo
-        $isParticipant = $trip->participants()->where('user_id', Auth::id())->exists();
-
-        if (!$isParticipant) {
-            return response()->json([
-                'message' => 'Você não tem permissão para visualizar as chaves PIX deste grupo.'
-            ], 403);
-        }
+        $this->ensureIsParticipant($trip, 'Você não tem permissão para visualizar as chaves PIX deste grupo.');
 
         // Buscar participantes que possuem um usuário associado
         $pixKeys = $trip->participants()
@@ -203,14 +190,7 @@ class TripController extends Controller
 
     public function addParticipant(Request $request, Trip $trip)
     {
-        // Verificar se o usuário autenticado é um participante do grupo
-        $isParticipant = $trip->participants()->where('user_id', Auth::id())->exists();
-
-        if (!$isParticipant) {
-            return response()->json([
-                'message' => 'Você não tem permissão para adicionar participantes neste grupo.'
-            ], 403);
-        }
+        $this->ensureIsParticipant($trip, 'Você não tem permissão para adicionar participantes neste grupo.');
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -253,14 +233,7 @@ class TripController extends Controller
 
     public function removeParticipant(Trip $trip, $participantId)
     {
-        // Verificar se o usuário autenticado é um participante do grupo
-        $isParticipant = $trip->participants()->where('user_id', Auth::id())->exists();
-
-        if (!$isParticipant) {
-            return response()->json([
-                'message' => 'Você não tem permissão para remover participantes deste grupo.'
-            ], 403);
-        }
+        $this->ensureIsParticipant($trip, 'Você não tem permissão para remover participantes deste grupo.');
 
         $participant = Participant::where('id', $participantId)
             ->where('trip_id', $trip->id)
@@ -304,14 +277,7 @@ class TripController extends Controller
 
     public function update(UpdateTripRequest $request, Trip $trip)
     {
-        // Verifica se o usuário autenticado é um participante do grupo
-        $isParticipant = $trip->participants()->where('user_id', Auth::id())->exists();
-
-        if (!$isParticipant) {
-            return response()->json([
-                'message' => 'Você não tem permissão para editar este grupo.'
-            ], 403);
-        }
+        $this->ensureIsParticipant($trip, 'Você não tem permissão para editar este grupo.');
 
         $trip->update($request->validated());
 
