@@ -190,6 +190,13 @@ trait SendsNotifications
 
     private function dispatchWhatsApp(array $phones, string $message): void
     {
-        SendWhatsAppMessage::dispatch($phones, $message);
+        // Enfileirar é um efeito colateral "fire and forget" — se falhar
+        // (ex.: contenção momentânea na tabela jobs), nunca pode derrubar
+        // a resposta da ação principal (criar despesa, quitar pagamento, etc.)
+        try {
+            SendWhatsAppMessage::dispatch($phones, $message);
+        } catch (\Exception $e) {
+            \Log::error('Erro ao enfileirar notificação WhatsApp', ['error' => $e->getMessage()]);
+        }
     }
 }
