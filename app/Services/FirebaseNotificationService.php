@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\User;
+use Kreait\Firebase\Exception\Messaging\NotFound;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
@@ -76,6 +78,16 @@ class FirebaseNotificationService
             ]);
 
             return $result;
+        } catch (NotFound $e) {
+            // Token desregistrado/expirado (app desinstalado, logout, etc.)
+            // — limpa do usuário pra não continuar tentando enviar pra ele.
+            User::where('fcm_token', $token)->update(['fcm_token' => null]);
+
+            Log::warning('Token FCM inválido removido do usuário', [
+                'token' => substr($token, 0, 20) . '...',
+            ]);
+
+            throw $e;
         } catch (\Exception $e) {
             Log::error('Erro ao enviar notificação Firebase', [
                 'token' => substr($token, 0, 20) . '...',

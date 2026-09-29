@@ -9,6 +9,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Services\FirebaseNotificationService;
 use Illuminate\Support\Facades\Log;
+use Kreait\Firebase\Exception\Messaging\NotFound;
 
 class SendNotificationJob implements ShouldQueue
 {
@@ -52,6 +53,13 @@ class SendNotificationJob implements ShouldQueue
                 'token' => substr($this->token, 0, 20) . '...',
                 'title' => $this->title
             ]);
+        } catch (NotFound $e) {
+            // Token permanentemente inválido (já removido do usuário pelo
+            // FirebaseNotificationService) — não adianta tentar de novo.
+            Log::warning('Notificação descartada: token FCM não registrado', [
+                'token' => substr($this->token, 0, 20) . '...',
+            ]);
+            $this->fail($e);
         } catch (\Exception $e) {
             Log::error('Erro ao enviar notificação', [
                 'token' => substr($this->token, 0, 20) . '...',
