@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Recria o arquivo de credenciais do Firebase a partir de uma env var, se
+# configurada. O arquivo é ignorado pelo git de propósito (é um segredo),
+# então um deploy baseado em git nunca o traz pro servidor sozinho — isso
+# fazia toda notificação falhar com "Arquivo de credenciais do Firebase
+# não encontrado". Configure FIREBASE_CREDENTIALS_BASE64 nas variáveis de
+# ambiente do painel (nunca no .env commitado) com o conteúdo do
+# firebase-auth.json em base64.
+if [ -n "$FIREBASE_CREDENTIALS_BASE64" ]; then
+    mkdir -p storage/app
+    echo "$FIREBASE_CREDENTIALS_BASE64" | base64 -d > storage/app/firebase-auth.json
+fi
+
 # Limpa caches — nunca usar config:cache em ambiente com variáveis dinâmicas
 php artisan config:clear
 php artisan cache:clear
